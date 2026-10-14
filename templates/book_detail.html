@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ book.title }}</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", Arial, sans-serif; }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e3a8a;
+            --secondary: #f59e0b;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+        a { text-decoration: none; }
+        .container { width: 100%; max-width: 1250px; margin: auto; padding: 0 25px; }
+
+        /* ================= HEADER ================= */
+        header {
+            background: rgba(255, 255, 255, 0.97);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .nav-container { min-height: 72px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 25px; font-weight: 800; color: var(--primary-dark); }
+        .nav-links { display: flex; align-items: center; gap: 8px; list-style: none; }
+        .nav-link {
+            display: block; padding: 9px 14px; color: var(--muted);
+            font-size: 14px; font-weight: 600; border-radius: 8px; transition: 0.2s;
+        }
+        .nav-link:hover, .nav-link.active { background: #eff6ff; color: var(--primary); }
+        .username-link { display: inline-block; }
+        .username {
+            font-weight: 700; color: var(--primary-dark); padding: 8px 12px;
+            background: #eff6ff; border-radius: 8px; transition: all 0.2s ease;
+        }
+        .username:hover { background: var(--primary); color: white; transform: translateY(-1px); }
+
+        /* ================= MAIN ================= */
+        main { flex: 1; padding: 30px 0 60px; }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+            font-size: 14px; color: var(--muted); margin-bottom: 22px;
+        }
+        .breadcrumb a { color: var(--muted); font-weight: 600; transition: 0.2s; }
+        .breadcrumb a:hover { color: var(--primary); }
+        .breadcrumb .current { color: var(--text); font-weight: 700; }
+
+        /* Detail card */
+        .detail-card {
+            background: var(--white); border: 1px solid var(--border); border-radius: 20px;
+            padding: 40px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+            display: grid; grid-template-columns: 340px 1fr; gap: 45px;
+        }
+
+        /* ---- Left column ---- */
+        .left-col { display: flex; flex-direction: column; gap: 20px; }
+
+        .cover-wrapper {
+            position: relative; border-radius: 16px; overflow: hidden;
+            border: 1px solid var(--border); box-shadow: 0 18px 35px rgba(15, 23, 42, 0.15);
+        }
+        .cover-wrapper img { width: 100%; height: auto; display: block; object-fit: cover; }
+        .cover-wrapper .no-image {
+            height: 460px; display: flex; align-items: center; justify-content: center;
+            background: #e2e8f0; color: var(--muted); font-weight: bold;
+        }
+        .available-badge {
+            position: absolute; top: 14px; right: 14px; background: #dcfce7; color: #15803d;
+            padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 800;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        }
+
+        .price-box {
+            text-align: center; background: #f8fafc; border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px;
+        }
+        .price-box span { display: block; font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+        .price-box strong { font-size: 32px; font-weight: 800; color: var(--primary); }
+
+        .actions { display: flex; flex-direction: column; gap: 10px; }
+        .btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 13px 20px; border-radius: 12px; border: none;
+            font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .btn-danger { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+        .btn-danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .btn-light { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+        .btn-light:hover { background: #e2e8f0; }
+        form.inline-form { margin: 0; }
+
+        /* ---- Right column ---- */
+        .right-col { display: flex; flex-direction: column; }
+
+        .tag-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .category-tag {
+            background: #fef3c7; color: #b45309; font-size: 12px; font-weight: 800;
+            padding: 6px 14px; border-radius: 8px; text-transform: uppercase; letter-spacing: .05em;
+        }
+        .entry-no { font-size: 12px; color: var(--muted); }
+
+        .book-title { font-size: 38px; font-weight: 800; line-height: 1.2; color: var(--text); margin-bottom: 10px; }
+        .book-author { font-size: 17px; color: var(--muted); margin-bottom: 8px; }
+        .book-author strong {
+            color: var(--text); font-weight: 700;
+            border-bottom: 3px solid var(--secondary); padding-bottom: 2px;
+        }
+        .short-desc { font-size: 15px; color: var(--muted); margin: 14px 0 26px; line-height: 1.6; }
+
+        /* Quick specs */
+        .quick-specs {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            background: #f8fafc; border: 1px solid var(--border); border-radius: 14px;
+            margin-bottom: 30px;
+        }
+        .spec { padding: 16px 20px; }
+        .spec + .spec { border-left: 1px solid var(--border); }
+        .spec span { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+        .spec strong { font-size: 18px; font-weight: 800; color: var(--text); }
+        .spec strong.accent { color: var(--primary); }
+
+        /* Section headings */
+        .block { margin-bottom: 30px; }
+        .block h2 { font-size: 21px; font-weight: 800; margin-bottom: 14px; color: var(--text); }
+        .block h2::before {
+            content: ""; display: inline-block; width: 5px; height: 23px; margin-right: 10px;
+            vertical-align: -4px; border-radius: 5px; background: var(--primary);
+        }
+        .block p { color: #475569; line-height: 1.8; font-size: 15px; }
+
+        /* Metadata table */
+        .meta-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0 30px;
+            background: #f8fafc; border: 1px solid var(--border); border-radius: 14px; padding: 8px 20px;
+        }
+        .meta-row {
+            display: flex; justify-content: space-between; gap: 10px;
+            padding: 13px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+        }
+        .meta-row span { color: var(--muted); }
+        .meta-row strong { color: var(--text); font-weight: 700; text-align: right; }
+        .meta-grid .meta-row:nth-last-child(-n+2) { border-bottom: none; }
+
+        /* ================= FOOTER ================= */
+        footer {
+            margin-top: auto; padding: 28px 0; background: #172033;
+            color: #94a3b8; text-align: center; font-size: 14px;
+        }
+        footer strong { color: white; }
+
+        /* ================= RESPONSIVE ================= */
+        @media (max-width: 1000px) {
+            .detail-card { grid-template-columns: 1fr; padding: 28px; gap: 30px; }
+            .left-col { max-width: 380px; margin: 0 auto; width: 100%; }
+        }
+        @media (max-width: 900px) {
+            .nav-container { flex-direction: column; padding: 15px 0; gap: 10px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; }
+        }
+        @media (max-width: 600px) {
+            .container { padding: 0 15px; }
+            .detail-card { padding: 20px; border-radius: 16px; }
+            .book-title { font-size: 28px; }
+            .quick-specs { grid-template-columns: 1fr; }
+            .spec + .spec { border-left: none; border-top: 1px solid var(--border); }
+            .meta-grid { grid-template-columns: 1fr; }
+            .meta-grid .meta-row:nth-last-child(2) { border-bottom: 1px solid var(--border); }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<header>
+    <div class="container nav-container">
+        <a href="{% url 'books:home' %}" class="logo">📖 OpenLibrary</a>
+
+        <ul class="nav-links">
+            <li><a href="{% url 'books:home' %}" class="nav-link">Home</a></li>
+
+            {% if request.user.is_authenticated %}
+            <li>
+                <a href="{% url 'accounts:profile' %}" class="username-link">
+                    <p class="username">👤 {{ request.user.username }}</p>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</header>
+
+<!-- ================= MAIN ================= -->
+<main class="container">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+        <a href="{% url 'books:home' %}">← Back</a>
+        <span>/</span>
+        <span>{{ book.category.name }}</span>
+        <span>/</span>
+        <span class="current">{{ book.title }}</span>
+    </nav>
+
+    <div class="detail-card">
+
+        <!-- ============ LEFT COLUMN ============ -->
+        <div class="left-col">
+            <div class="cover-wrapper">
+                {% if book.image %}
+                    <img src="{{ book.image.url }}" alt="{{ book.title }}">
+                {% else %}
+                    <div class="no-image">No Image</div>
+                {% endif %}
+                <span class="available-badge">Available</span>
+            </div>
+
+            <div class="price-box">
+                <span>Price</span>
+                <strong>${{ book.price }}</strong>
+            </div>
+
+            <div class="actions">
+<!--                <a href="{% url 'books:book-update' pk=book.pk %}" class="btn btn-primary">⚙️ Edit Book</a>-->
+
+<!--                <form action="{% url 'books:book-delete' pk=book.pk %}" method="POST" class="inline-form">-->
+<!--                    {% csrf_token %}-->
+<!--                    <button type="submit" class="btn btn-danger"-->
+<!--                            onclick="return confirm('Siz haqiqatan ham ushbu kitobni o\'chirmoqchimisiz?');">🗑️ Delete Book</button>-->
+<!--                </form>-->
+
+                <a href="{% url 'books:home' %}" class="btn btn-light">← Back</a>
+            </div>
+        </div>
+
+        <!-- ============ RIGHT COLUMN ============ -->
+        <div class="right-col">
+
+            <div class="tag-row">
+                <span class="category-tag">{{ book.category.name }}</span>
+                <span class="entry-no">• Catalog Entry #{{ book.pk }}</span>
+            </div>
+
+            <h1 class="book-title">{{ book.title }}</h1>
+
+            <p class="book-author">
+                By <strong>{{ book.author.first_name }} {{ book.author.last_name }}</strong>
+            </p>
+
+            <p class="short-desc">{{ book.short_description }}</p>
+
+            <!-- Quick specs -->
+            <div class="quick-specs">
+                <div class="spec">
+                    <span>Pages</span>
+                    <strong>{{ book.pages }}</strong>
+                </div>
+                <div class="spec">
+                    <span>Price</span>
+                    <strong class="accent">${{ book.price }}</strong>
+                </div>
+                <div class="spec">
+                    <span>Category</span>
+                    <strong>{{ book.category.name }}</strong>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="block">
+                <h2>Description</h2>
+                <p>{{ book.long_description }}</p>
+            </div>
+
+            <!-- Metadata -->
+            <div class="block">
+                <h2>Details</h2>
+                <div class="meta-grid">
+                    <div class="meta-row">
+                        <span>Title:</span>
+                        <strong>{{ book.title }}</strong>
+                    </div>
+                    <div class="meta-row">
+                        <span>Author:</span>
+                        <strong>{{ book.author.first_name }} {{ book.author.last_name }}</strong>
+                    </div>
+                    <div class="meta-row">
+                        <span>Category:</span>
+                        <strong>{{ book.category.name }}</strong>
+                    </div>
+                    <div class="meta-row">
+                        <span>Pages:</span>
+                        <strong>{{ book.pages }}</strong>
+                    </div>
+                    <div class="meta-row">
+                        <span>Price:</span>
+                        <strong>${{ book.price }}</strong>
+                    </div>
+                    <div class="meta-row">
+                        <span>Status:</span>
+                        <strong style="color:#15803d;">In Stock</strong>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+    <div class="container">
+        <p>2026 <strong>OpenLibrary</strong>. All rights reserved.</p>
+    </div>
+</footer>
+
+</body>
+</html>
